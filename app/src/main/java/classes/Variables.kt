@@ -8,6 +8,7 @@ package classes
         val longNumber:Long = 284042455451111111;
         val temperature:Float = 27.123f;
         val Weight:Double = 68.4;
+        val pendejo:String
 
         //Variables String
         val genero:Char = 'M'
