@@ -53,6 +53,7 @@ import com.example.prueba1.ui.theme.Prueba1Theme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.prueba1.ui.screens.ComponentsScreen
 import com.example.prueba1.ui.screens.HomeScreen
 import com.example.prueba1.ui.screens.MenuScreen
 
@@ -352,6 +353,6 @@ fun SetupNavGraph(navController: NavHostController){
     NavHost(navController = navController, startDestination = "menu"){
         composable("menu") { MenuScreen(navController)}
             composable("home") { HomeScreen(navController) }
-
+            composable("components") { ComponentsScreen(navController) }
     }
 }
