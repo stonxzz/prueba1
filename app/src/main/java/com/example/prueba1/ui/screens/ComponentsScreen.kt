@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -90,6 +93,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
@@ -99,6 +103,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.navigation.NavController
+import com.example.ejemplo1.ui.components.PostCard
 import com.example.prueba1.R
 import com.example.prueba1.data.model.MenuModel
 import com.example.prueba1.data.model.PostModel
@@ -813,10 +818,15 @@ fun Bars(){
             Icon(Icons.Filled.Settings, contentDescription = "", tint = Color.White)
         }
         var post = arrayOf(
-            PostModel(1,"title 1","text 1"),
-            PostModel(2,"title 2","text 2"),
-            PostModel(3,"title 3","text 3"),
-            PostModel(4,"title 4","text 4"),
+            PostModel(1,"title 1","text 1", painterResource(R.drawable.android_logo)),
+            PostModel(2,"title 2","text 2", painterResource(R.drawable.android_logo)),
+            PostModel(3,"title 3","text 3", painterResource(R.drawable.android_logo)),
+            PostModel(4,"title 4","text 4", painterResource(R.drawable.android_logo)),
+            PostModel(4,"title 5","text 5", painterResource(R.drawable.android_logo)),
+            PostModel(4,"title 6","text 6", painterResource(R.drawable.android_logo)),
+            PostModel(4,"title 7","text 7", painterResource(R.drawable.android_logo)),
+            PostModel(4,"title 8","text 8", painterResource(R.drawable.android_logo)),
+            PostModel(4,"title 9","text 9", painterResource(R.drawable.android_logo)),
 
             )
         Column(modifier = Modifier
@@ -824,7 +834,7 @@ fun Bars(){
             .padding(10.dp,90.dp,10.dp,50.dp)
             .fillMaxSize()
         ) {
-            Posts(post)
+            PostsGrid(post)
         }
         Row(
             modifier = Modifier
@@ -893,13 +903,22 @@ fun Posts(arrayPosts:Array<PostModel> ){
 
     ){
         items(arrayPosts){ post ->
-            Text(
-                text = post.text,
-                color = Color.White,
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(thickness = 2.dp)
+            PostCard(post.id, post.title, post.text, post.image)
+        }
+    }
+}
+
+@Composable
+fun PostsGrid(arrayPosts: Array<PostModel>){
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 128.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(26.dp)
+
+    ){
+        items(arrayPosts){ post ->
+            PostCard(post.id, post.title, post.text, post.image)
         }
     }
 }
