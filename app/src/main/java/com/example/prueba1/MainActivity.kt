@@ -2,6 +2,7 @@ package com.example.prueba1
 
 import android.graphics.Picture
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -55,6 +56,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.prueba1.ui.screens.ComponentsScreen
 import com.example.prueba1.ui.screens.HomeScreen
+import com.example.prueba1.ui.screens.LoginScreen
 import com.example.prueba1.ui.screens.MenuScreen
 
 //import androidx.navigation.compose.NavHostController
@@ -350,9 +352,10 @@ fun ComposeMultiScreenApp(){
 
 @Composable
 fun SetupNavGraph(navController: NavHostController){
-    NavHost(navController = navController, startDestination = "menu"){
+    NavHost(navController = navController, startDestination = "login"){
         composable("menu") { MenuScreen(navController)}
-            composable("home") { HomeScreen(navController) }
-            composable("components") { ComponentsScreen(navController) }
+        composable("home") { HomeScreen(navController) }
+        composable("login") { LoginScreen(navController) }
+        composable("components") { ComponentsScreen(navController) }
     }
 }
