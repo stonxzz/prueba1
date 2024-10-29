@@ -59,11 +59,11 @@ fun LoginForm(navController: NavController){
             modifier = Modifier
                 .padding(20.dp)
         ){
-            /*AsyncImage(
-                model = "https://img.freepik.com/vector-gratis/diseno-logotipo-degradado-colorido-letra_474888-2309.jpg",
+            AsyncImage(
+                model = "https://1000logos.net/wp-content/uploads/2021/05/GitHub-logo.png",
                 contentDescription = "Logo",
                 contentScale = ContentScale.Fit
-            )*/
+            )
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth(),
