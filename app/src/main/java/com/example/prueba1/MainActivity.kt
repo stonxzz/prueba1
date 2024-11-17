@@ -403,26 +403,48 @@ fun BoxExample2(){
 */
 
 @Composable
-fun ComposeMultiScreenApp(activity: AppCompatActivity,networkMonitor: NetworkMonitor){
+fun ComposeMultiScreenApp(searchVM: SearchViewModel, activity: AppCompatActivity,networkMonitor: NetworkMonitor){
     val navController = rememberNavController()
-    Surface(color = Color.White) {
-        SetupNavGraph(navController = navController, activity,networkMonitor)
+    Surface(color=Color.White){
+        SetupNavGraph(navController=navController,searchVM,activity,networkMonitor) //función propia //crea el grafo recordando el navcontroller donde nos encontramos
     }
 }
 
 @Composable
-fun SetupNavGraph(navController: NavHostController,activity: AppCompatActivity,networkMonitor: NetworkMonitor){
+fun SetupNavGraph(navController: NavHostController,searchVM: SearchViewModel,activity: AppCompatActivity,networkMonitor: NetworkMonitor){
+
     val context = LocalContext.current
-    NavHost(navController = navController, startDestination = "menu"){
-        composable("menu") { MenuScreen(navController)}
-        composable("home") { HomeScreen(navController) }
-        composable("login") { LoginScreen(navController) }
-        composable("components") { ComponentsScreen(navController) }
+    NavHost(navController = navController, startDestination = "menu"){ //índice de pantallas //Usa el nav controller de ahorita y empieza desde el índice definido
+        composable("menu"){ MenuScreen(navController) } //Rutas
+        composable("home"){ HomeScreen(navController) }
+        composable("components"){ ComponentsScreen(navController) }
+        composable("login"){ LoginScreen(navController = navController)}
+
+        composable("Camera"){ CameraScreen(context = context,navController)}
+
+        composable("internet"){networkMonitor.NetworkMonitorScreen(navController)}
+
+        // Rutas de contactos
+
+        composable("contacts"){ ContactScreen(navController = navController) }
+
         //Biometricos
         composable("biometrics"){ BiometricsScreen(navController = navController, activity = activity)}
-        composable("Camera"){ CameraScreen(context = context,navController)}
-        composable("internet"){networkMonitor.NetworkMonitorScreen(navController)}
-        composable("contacts") { ContactScreen(navController) }
+
+        // Ruta para `MapsSearchView` que recibe latitud, longitud y dirección como argumentos
+        composable("homeMaps"){ HomeView(navController = navController, searchVM = searchVM)}
+        composable("MapsSearchView/{lat}/{long}/{address}", arguments = listOf(
+            navArgument("lat") { type = NavType.FloatType },
+            navArgument("long") { type = NavType.FloatType },
+            navArgument("address") { type = NavType.StringType }
+        )) {
+            // Obtención de los argumentos con valores predeterminados en caso de que falten
+            val lat = it.arguments?.getFloat("lat") ?: 0.0
+            val long = it.arguments?.getFloat("long") ?: 0.0
+            val address = it.arguments?.getString("address") ?: ""
+            MapsSearchView(lat.toDouble(), long.toDouble(), address )
+        }
 
     }
+
 }
