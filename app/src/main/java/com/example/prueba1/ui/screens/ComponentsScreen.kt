@@ -133,6 +133,7 @@ fun ComponentsScreen(navController: NavController){
             MenuModel(1,"Alert Dialogs","AlertDialogs", Icons.Filled.Lock),
             MenuModel(1,"Bars","Bars", Icons.Filled.Menu),
             MenuModel(1,"Adaptive","Adaptive", Icons.Filled.Menu),
+            MenuModel(1,"Login","Login", Icons.Filled.Menu),
 
         )
         var component by rememberSaveable { mutableStateOf("") }//Es para hacer reactiva la variable commo en vue
@@ -360,6 +361,9 @@ fun ComponentsScreen(navController: NavController){
                     }
                     "Adaptive" -> {
                         Adaptive()
+                    }
+                    "Login" -> {
+                        LoginScreen(navController)
                     }
                 }
             }
