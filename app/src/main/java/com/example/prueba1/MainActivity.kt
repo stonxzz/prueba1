@@ -7,6 +7,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.platform.LocalContext
+import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -56,20 +59,40 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.prueba1.ui.biometrics.BiometricsScreen
+import com.example.prueba1.ui.camera.CameraScreen
 import com.example.prueba1.ui.contacts.ContactScreen
 import com.example.prueba1.ui.screens.ComponentsScreen
 import com.example.prueba1.ui.screens.HomeScreen
 import com.example.prueba1.ui.screens.LoginScreen
 import com.example.prueba1.ui.screens.MenuScreen
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.example.prueba1.ui.network.NetworkMonitor
 
 //import androidx.navigation.compose.NavHostController
 
 class MainActivity : AppCompatActivity() {
+    //Internet
+    // Inicializamos los objetos que vamos a usar para el monitoreo de la red
+    private lateinit var wifiManager: WifiManager  // Para gestionar el Wi-Fi
+    private lateinit var connectivityManager: ConnectivityManager  // Para gestionar las conexiones de red
+    private lateinit var networkMonitor: NetworkMonitor  // Clase que monitorea el estado de la red
+    //--------------------------------------------
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        //Internet
+        // Obtenemos los servicios necesarios para controlar Wi-Fi y la conectividad de red
+        wifiManager = getSystemService(WIFI_SERVICE) as WifiManager
+        connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+        // Creamos una instancia de NetworkMonitor, pasando los servicios y la actividad actual
+        networkMonitor = NetworkMonitor(wifiManager, connectivityManager, this)
+        //---------------------------------------------
         setContent {
-            ComposeMultiScreenApp(this)
+            ComposeMultiScreenApp(this,networkMonitor)
             /*
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -111,6 +134,40 @@ class MainActivity : AppCompatActivity() {
             */
         }
     }
+    //Internet
+// Función para solicitar permisos si no han sido concedidos
+
+
+    fun requestPermissionsIfNeeded() {
+        val permissions = listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,  // Permiso para la ubicación precisa
+            Manifest.permission.ACCESS_COARSE_LOCATION  // Permiso para la ubicación aproximada
+        ).filter {
+            // Verificamos si alguno de los permisos no ha sido concedido
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        // Si falta algún permiso, solicitamos los permisos necesarios
+        if (permissions.isNotEmpty()) {
+            requestPermissionsLauncher.launch(permissions.toTypedArray())
+        }
+    }
+
+    private val requestPermissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions())
+        { permissions ->
+            // Verificamos si los permisos de ubicación fueron concedidos
+            if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            ) {
+                // Si los permisos son concedidos, mostramos un mensaje
+                Toast.makeText(this, "Permisos necesarios concedidos", Toast.LENGTH_SHORT).show()
+            } else {
+                // Si no se conceden, mostramos un mensaje de error
+                Toast.makeText(this, "Permisos necesarios no concedidos", Toast.LENGTH_SHORT).show()
+            }
+        }
+
 }
 
 /*
@@ -346,21 +403,24 @@ fun BoxExample2(){
 */
 
 @Composable
-fun ComposeMultiScreenApp(activity: AppCompatActivity){
+fun ComposeMultiScreenApp(activity: AppCompatActivity,networkMonitor: NetworkMonitor){
     val navController = rememberNavController()
     Surface(color = Color.White) {
-        SetupNavGraph(navController = navController, activity)
+        SetupNavGraph(navController = navController, activity,networkMonitor)
     }
 }
 
 @Composable
-fun SetupNavGraph(navController: NavHostController,activity: AppCompatActivity){
-    NavHost(navController = navController, startDestination = "biometrics"){
+fun SetupNavGraph(navController: NavHostController,activity: AppCompatActivity,networkMonitor: NetworkMonitor){
+    val context = LocalContext.current
+    NavHost(navController = navController, startDestination = "internet"){
         composable("menu") { MenuScreen(navController)}
         composable("home") { HomeScreen(navController) }
         composable("login") { LoginScreen(navController) }
         composable("components") { ComponentsScreen(navController) }
         //Biometricos
         composable("biometrics"){ BiometricsScreen(navController = navController, activity = activity)}
+        composable("Camera"){ CameraScreen(context = context)}
+        composable("internet"){networkMonitor.NetworkMonitorScreen()}
     }
 }
