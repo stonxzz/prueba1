@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -56,6 +57,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.prueba1.ui.biometrics.BiometricsScreen
+import com.example.prueba1.ui.camera.CameraScreen
 import com.example.prueba1.ui.contacts.ContactScreen
 import com.example.prueba1.ui.screens.ComponentsScreen
 import com.example.prueba1.ui.screens.HomeScreen
@@ -355,12 +357,14 @@ fun ComposeMultiScreenApp(activity: AppCompatActivity){
 
 @Composable
 fun SetupNavGraph(navController: NavHostController,activity: AppCompatActivity){
-    NavHost(navController = navController, startDestination = "biometrics"){
+    val context = LocalContext.current
+    NavHost(navController = navController, startDestination = "Camera"){
         composable("menu") { MenuScreen(navController)}
         composable("home") { HomeScreen(navController) }
         composable("login") { LoginScreen(navController) }
         composable("components") { ComponentsScreen(navController) }
         //Biometricos
         composable("biometrics"){ BiometricsScreen(navController = navController, activity = activity)}
+        composable("Camera"){ CameraScreen(context = context)}
     }
 }
