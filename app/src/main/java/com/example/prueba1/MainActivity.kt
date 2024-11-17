@@ -69,7 +69,13 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.prueba1.ui.location.viewModel.SearchViewModel
+import com.example.prueba1.ui.location.views.HomeView
+import com.example.prueba1.ui.location.views.MapsSearchView
 import com.example.prueba1.ui.network.NetworkMonitor
 
 //import androidx.navigation.compose.NavHostController
@@ -90,9 +96,11 @@ class MainActivity : AppCompatActivity() {
         connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         // Creamos una instancia de NetworkMonitor, pasando los servicios y la actividad actual
         networkMonitor = NetworkMonitor(wifiManager, connectivityManager, this)
-        //---------------------------------------------
+        //Maps
+        //Instancia del ViewModel
+        val viewModel: SearchViewModel by viewModels()
         setContent {
-            ComposeMultiScreenApp(this,networkMonitor)
+            ComposeMultiScreenApp(searchVM = viewModel,this,networkMonitor)
             /*
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -411,7 +419,7 @@ fun ComposeMultiScreenApp(searchVM: SearchViewModel, activity: AppCompatActivity
 }
 
 @Composable
-fun SetupNavGraph(navController: NavHostController,searchVM: SearchViewModel,activity: AppCompatActivity,networkMonitor: NetworkMonitor){
+fun SetupNavGraph(navController: NavHostController, searchVM: SearchViewModel, activity: AppCompatActivity, networkMonitor: NetworkMonitor){
 
     val context = LocalContext.current
     NavHost(navController = navController, startDestination = "menu"){ //índice de pantallas //Usa el nav controller de ahorita y empieza desde el índice definido
