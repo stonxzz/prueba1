@@ -16,6 +16,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -24,10 +26,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import java.text.SimpleDateFormat
 import java.util.*
+
+
 @Composable
 fun ContactScreen(navController: NavController){
     // Variable que indica si los permisos han sido concedidos
     var hasPermission by remember { mutableStateOf(false) }
+
     // Configura el lanzador de permisos
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -37,6 +42,7 @@ fun ContactScreen(navController: NavController){
                 permissions[Manifest.permission.READ_CALENDAR] == true &&
                 permissions[Manifest.permission.WRITE_CALENDAR] == true
     }
+
     // Efecto lanzado para solicitar permisos cuando se carga la pantalla
     LaunchedEffect(Unit) {
         permissionLauncher.launch(
@@ -46,6 +52,10 @@ fun ContactScreen(navController: NavController){
                 Manifest.permission.WRITE_CALENDAR
             )
         )
+    }
+
+    Button(onClick = {navController.popBackStack()}){
+        Icon(Icons.Filled.KeyboardArrowLeft,"Go Back")
     }
     // Verifica si los permisos han sido otorgados para mostrar la pantalla correspondiente
     if (hasPermission) {
@@ -75,6 +85,8 @@ fun ContactScreen(navController: NavController){
         }
     }
 }
+
+
 // Pantalla que permite seleccionar contactos y fechas para crear eventos
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,17 +96,21 @@ fun AgendaScreen() {
     var selectedDate by remember { mutableStateOf("Selecciona una fecha") }
     var selectedStartTime by remember { mutableStateOf("Selecciona hora de inicio") }
     var selectedEndTime by remember { mutableStateOf("Selecciona hora de fin") }
+
     // Obtiene el contexto actual y crea una variable para mostrar el diálogo de selección de contacto
     val context = LocalContext.current
     var showContactDialog by remember { mutableStateOf(false) }
+
     // Obtiene la lista de contactos
     val contacts = remember { fetchContacts(context) }
+
     // Columna principal de la interfaz
     Column(modifier = Modifier.padding(16.dp)) {
         // Botón que muestra el contacto seleccionado
         Button(onClick = { showContactDialog = true }) {
             Text(text = selectedContact)
         }
+
         // Diálogo de selección de contactos
         if (showContactDialog) {
             AlertDialog(
@@ -120,7 +136,9 @@ fun AgendaScreen() {
                 }
             )
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
         // Botón para seleccionar la fecha
         Button(onClick = {
             val currentDate = Calendar.getInstance()
@@ -137,7 +155,9 @@ fun AgendaScreen() {
         }) {
             Text(text = selectedDate)
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
         // Botón para seleccionar la hora de inicio
         Button(onClick = {
             val currentTime = Calendar.getInstance()
@@ -154,7 +174,9 @@ fun AgendaScreen() {
         }) {
             Text(text = selectedStartTime)
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
         // Botón para seleccionar la hora de fin
         Button(onClick = {
             val currentTime = Calendar.getInstance()
@@ -171,29 +193,36 @@ fun AgendaScreen() {
         }) {
             Text(text = selectedEndTime)
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
         // Botón para guardar el evento en el calendario
         Button(onClick = {
             if (selectedContact != "Selecciona un contacto" &&
                 selectedDate != "Selecciona una fecha" &&
                 selectedStartTime != "Selecciona hora de inicio" &&
                 selectedEndTime != "Selecciona hora de fin") {
+
                 // Convierte la fecha y la hora en milisegundos
                 val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 val dateInMillis = dateFormat.parse(selectedDate)?.time
+
                 if (dateInMillis != null) {
                     val (startHour, startMinute) = selectedStartTime.split(":").map { it.toInt() }
                     val (endHour, endMinute) = selectedEndTime.split(":").map { it.toInt() }
+
                     val startTimeInMillis = Calendar.getInstance().apply {
                         timeInMillis = dateInMillis
                         set(Calendar.HOUR_OF_DAY, startHour)
                         set(Calendar.MINUTE, startMinute)
                     }.timeInMillis
+
                     val endTimeInMillis = Calendar.getInstance().apply {
                         timeInMillis = dateInMillis
                         set(Calendar.HOUR_OF_DAY, endHour)
                         set(Calendar.MINUTE, endMinute)
                     }.timeInMillis
+
                     // Obtiene el ID del calendario y guarda el evento
                     val calendarId = getCalendarId(context)
                     if (calendarId != null) {
@@ -212,9 +241,11 @@ fun AgendaScreen() {
         }
     }
 }
+
 // Función para obtener los contactos del teléfono
 fun fetchContacts(context: Context): List<String> {
     val contacts = mutableListOf<String>()
+
     val cursor = context.contentResolver.query(
         ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
         null,
@@ -229,14 +260,17 @@ fun fetchContacts(context: Context): List<String> {
             contacts.add(name)
         }
     }
+
     return contacts
 }
+
 // Función para obtener el ID de un calendario local
 fun getCalendarId(context: Context): Long? {
     val projection = arrayOf(
         CalendarContract.Calendars._ID,
         CalendarContract.Calendars.ACCOUNT_TYPE
     )
+
     val cursor = context.contentResolver.query(
         CalendarContract.Calendars.CONTENT_URI,
         projection,
@@ -244,9 +278,11 @@ fun getCalendarId(context: Context): Long? {
         null,
         null
     )
+
     cursor?.use {
         val idIndex = it.getColumnIndex(CalendarContract.Calendars._ID)
         val accountTypeIndex = it.getColumnIndex(CalendarContract.Calendars.ACCOUNT_TYPE)
+
         while (it.moveToNext()) {
             val accountType = if (accountTypeIndex != -1) {
                 it.getString(accountTypeIndex)
@@ -265,6 +301,7 @@ fun getCalendarId(context: Context): Long? {
     Log.w("CalendarDebug", "No se encontró un calendario local.")
     return null
 }
+
 // Función para guardar el evento en el calendario
 fun saveEventToCalendar(context: Context, contact: String, startTimeInMillis: Long, endTimeInMillis: Long, calendarId: Long) {
     val contentValues = ContentValues().apply {
@@ -274,6 +311,7 @@ fun saveEventToCalendar(context: Context, contact: String, startTimeInMillis: Lo
         put(CalendarContract.Events.CALENDAR_ID, calendarId)
         put(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
     }
+
     try {
         val uri = context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, contentValues)
         if (uri != null) {

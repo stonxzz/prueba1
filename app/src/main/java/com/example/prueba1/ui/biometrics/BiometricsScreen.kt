@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,14 +25,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+
 @Composable
 fun BiometricsScreen(navController: NavController,activity:AppCompatActivity){
     val promptManager  by lazy{
+        /**
+         * by lazy means we initialize the value as soon
+         * as we access it the fist time
+         */
         BiometricPromptManager(activity)
     }
+
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         //Access the flow to collect events
         val biometricResult by promptManager.promptResults.collectAsState(initial = null)
+
         // In order to fire and launch the activity
         // to set a biometric or enroll it
         val enrollLauncher = rememberLauncherForActivityResult(
@@ -40,6 +50,7 @@ fun BiometricsScreen(navController: NavController,activity:AppCompatActivity){
                 println("Activity result: $it")
             }
         )
+
         // To prompt the user to set a biometric
         // signature in case it hasn't been set
         LaunchedEffect(biometricResult) {
@@ -64,6 +75,9 @@ fun BiometricsScreen(navController: NavController,activity:AppCompatActivity){
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
+            Button(onClick = {navController.popBackStack()}){
+                Icon(Icons.Filled.KeyboardArrowLeft,"Go Back")
+            }
             //Simple button
             Button(onClick = {
                 promptManager.showBiometricPrompt(
@@ -78,6 +92,7 @@ fun BiometricsScreen(navController: NavController,activity:AppCompatActivity){
                 Text(
                     text = when(result){
                         //Alt + Enter -> Add remaining branches
+
                         //Select the first sentence before the dot
                         // Alt+ Enter -> import memembers from ....
                         is BiometricPromptManager.BiometricResult.AuthenticationError -> {
@@ -100,6 +115,7 @@ fun BiometricsScreen(navController: NavController,activity:AppCompatActivity){
                         }
                     }
                 )
+
             }
         }
     }

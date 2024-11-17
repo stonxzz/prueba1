@@ -413,14 +413,16 @@ fun ComposeMultiScreenApp(activity: AppCompatActivity,networkMonitor: NetworkMon
 @Composable
 fun SetupNavGraph(navController: NavHostController,activity: AppCompatActivity,networkMonitor: NetworkMonitor){
     val context = LocalContext.current
-    NavHost(navController = navController, startDestination = "internet"){
+    NavHost(navController = navController, startDestination = "menu"){
         composable("menu") { MenuScreen(navController)}
         composable("home") { HomeScreen(navController) }
         composable("login") { LoginScreen(navController) }
         composable("components") { ComponentsScreen(navController) }
         //Biometricos
         composable("biometrics"){ BiometricsScreen(navController = navController, activity = activity)}
-        composable("Camera"){ CameraScreen(context = context)}
-        composable("internet"){networkMonitor.NetworkMonitorScreen()}
+        composable("Camera"){ CameraScreen(context = context,navController)}
+        composable("internet"){networkMonitor.NetworkMonitorScreen(navController)}
+        composable("contacts") { ContactScreen(navController) }
+
     }
 }
