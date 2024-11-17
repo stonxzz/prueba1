@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,12 +51,17 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
 import com.example.prueba1.ui.theme.Prueba1Theme
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.prueba1.ui.screens.ComponentsScreen
 import com.example.prueba1.ui.screens.HomeScreen
 import com.example.prueba1.ui.screens.MenuScreen
+import androidx.navigation.navArgument
+import com.example.prueba1.ui.location.viewModel.SearchViewModel
+import com.example.prueba1.ui.location.views.HomeView
+import com.example.prueba1.ui.location.views.MapsSearchView
 
 //import androidx.navigation.compose.NavHostController
 
@@ -63,8 +69,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        //Maps
+        //Instancia del ViewModel
+        val viewModel: SearchViewModel by viewModels()
         setContent {
-            ComposeMultiScreenApp()
+            ComposeMultiScreenApp(searchVM = viewModel)
             /*
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -341,18 +350,31 @@ fun BoxExample2(){
 */
 
 @Composable
-fun ComposeMultiScreenApp(){
+fun ComposeMultiScreenApp(searchVM: SearchViewModel){
     val navController = rememberNavController()
     Surface(color = Color.White) {
-        SetupNavGraph(navController = navController)
+        SetupNavGraph(navController = navController, searchVM)
     }
 }
 
 @Composable
-fun SetupNavGraph(navController: NavHostController){
-    NavHost(navController = navController, startDestination = "menu"){
-        composable("menu") { MenuScreen(navController)}
-            composable("home") { HomeScreen(navController) }
-            composable("components") { ComponentsScreen(navController) }
+fun SetupNavGraph(navController: NavHostController,searchVM: SearchViewModel){
+    NavHost(navController = navController, startDestination = "homeMaps") { //índice de pantallas //Usa el nav controller de ahorita y empieza desde el índice definido
+        composable("menu") { MenuScreen(navController) } //Rutas
+        composable("home") { HomeScreen(navController) }
+        // Ruta para `MapsSearchView` que recibe latitud, longitud y dirección como argumentos
+        composable("homeMaps") { HomeView(navController = navController, searchVM = searchVM) }
+        composable("MapsSearchView/{lat}/{long}/{address}", arguments = listOf(
+            navArgument("lat") { type = NavType.FloatType },
+            navArgument("long") { type = NavType.FloatType },
+            navArgument("address") { type = NavType.StringType }
+        )) {
+            // Obtención de los argumentos con valores predeterminados en caso de que falten
+            val lat = it.arguments?.getFloat("lat") ?: 0.0
+            val long = it.arguments?.getFloat("long") ?: 0.0
+            val address = it.arguments?.getString("address") ?: ""
+            MapsSearchView(lat.toDouble(), long.toDouble(), address)
+        }
     }
 }
+
