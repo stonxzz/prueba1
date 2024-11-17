@@ -67,19 +67,30 @@ import com.example.prueba1.ui.screens.LoginScreen
 import com.example.prueba1.ui.screens.MenuScreen
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.prueba1.ui.background.CustomWorker
 import com.example.prueba1.ui.location.viewModel.SearchViewModel
 import com.example.prueba1.ui.location.views.HomeView
 import com.example.prueba1.ui.location.views.MapsSearchView
 import com.example.prueba1.ui.network.NetworkMonitor
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.work.BackoffPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 //import androidx.navigation.compose.NavHostController
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     //Internet
     // Inicializamos los objetos que vamos a usar para el monitoreo de la red
@@ -87,9 +98,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var connectivityManager: ConnectivityManager  // Para gestionar las conexiones de red
     private lateinit var networkMonitor: NetworkMonitor  // Clase que monitorea el estado de la red
     //--------------------------------------------
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        //WorkManager
+        //------------------------------------------
+        val workRequest = OneTimeWorkRequestBuilder<CustomWorker>()
+            .setInitialDelay(Duration.ofSeconds(10))
+            .setBackoffCriteria(
+                backoffPolicy = BackoffPolicy.LINEAR,
+                duration = Duration.ofSeconds(15)
+            )
+            .build()
+        WorkManager.getInstance(applicationContext).enqueue(workRequest)
+        //By adding this, message "Hello from worker!" should be seen from LogCat
         //Internet
         // Obtenemos los servicios necesarios para controlar Wi-Fi y la conectividad de red
         wifiManager = getSystemService(WIFI_SERVICE) as WifiManager
