@@ -2,9 +2,14 @@ package com.example.prueba1
 
 import android.graphics.Picture
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.platform.LocalContext
+import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -53,18 +58,73 @@ import com.example.prueba1.ui.theme.Prueba1Theme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.prueba1.ui.biometrics.BiometricsScreen
+import com.example.prueba1.ui.camera.CameraScreen
+import com.example.prueba1.ui.contacts.ContactScreen
 import com.example.prueba1.ui.screens.ComponentsScreen
 import com.example.prueba1.ui.screens.HomeScreen
+import com.example.prueba1.ui.screens.LoginScreen
 import com.example.prueba1.ui.screens.MenuScreen
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.prueba1.ui.background.CustomWorker
+import com.example.prueba1.ui.location.viewModel.SearchViewModel
+import com.example.prueba1.ui.location.views.HomeView
+import com.example.prueba1.ui.location.views.MapsSearchView
+import com.example.prueba1.ui.network.NetworkMonitor
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.work.BackoffPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 //import androidx.navigation.compose.NavHostController
 
-class MainActivity : ComponentActivity() {
+@AndroidEntryPoint
+class MainActivity : AppCompatActivity() {
+    //Internet
+    // Inicializamos los objetos que vamos a usar para el monitoreo de la red
+    private lateinit var wifiManager: WifiManager  // Para gestionar el Wi-Fi
+    private lateinit var connectivityManager: ConnectivityManager  // Para gestionar las conexiones de red
+    private lateinit var networkMonitor: NetworkMonitor  // Clase que monitorea el estado de la red
+    //--------------------------------------------
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        //WorkManager
+        //------------------------------------------
+        val workRequest = OneTimeWorkRequestBuilder<CustomWorker>()
+            .setInitialDelay(Duration.ofSeconds(10))
+            .setBackoffCriteria(
+                backoffPolicy = BackoffPolicy.LINEAR,
+                duration = Duration.ofSeconds(15)
+            )
+            .build()
+        WorkManager.getInstance(applicationContext).enqueue(workRequest)
+        //By adding this, message "Hello from worker!" should be seen from LogCat
+        //Internet
+        // Obtenemos los servicios necesarios para controlar Wi-Fi y la conectividad de red
+        wifiManager = getSystemService(WIFI_SERVICE) as WifiManager
+        connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+        // Creamos una instancia de NetworkMonitor, pasando los servicios y la actividad actual
+        networkMonitor = NetworkMonitor(wifiManager, connectivityManager, this)
+        //Maps
+        //Instancia del ViewModel
+        val viewModel: SearchViewModel by viewModels()
         setContent {
-            ComposeMultiScreenApp()
+            ComposeMultiScreenApp(searchVM = viewModel,this,networkMonitor)
             /*
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -106,6 +166,40 @@ class MainActivity : ComponentActivity() {
             */
         }
     }
+    //Internet
+// Función para solicitar permisos si no han sido concedidos
+
+
+    fun requestPermissionsIfNeeded() {
+        val permissions = listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,  // Permiso para la ubicación precisa
+            Manifest.permission.ACCESS_COARSE_LOCATION  // Permiso para la ubicación aproximada
+        ).filter {
+            // Verificamos si alguno de los permisos no ha sido concedido
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        // Si falta algún permiso, solicitamos los permisos necesarios
+        if (permissions.isNotEmpty()) {
+            requestPermissionsLauncher.launch(permissions.toTypedArray())
+        }
+    }
+
+    private val requestPermissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions())
+        { permissions ->
+            // Verificamos si los permisos de ubicación fueron concedidos
+            if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            ) {
+                // Si los permisos son concedidos, mostramos un mensaje
+                Toast.makeText(this, "Permisos necesarios concedidos", Toast.LENGTH_SHORT).show()
+            } else {
+                // Si no se conceden, mostramos un mensaje de error
+                Toast.makeText(this, "Permisos necesarios no concedidos", Toast.LENGTH_SHORT).show()
+            }
+        }
+
 }
 
 /*
@@ -341,18 +435,48 @@ fun BoxExample2(){
 */
 
 @Composable
-fun ComposeMultiScreenApp(){
+fun ComposeMultiScreenApp(searchVM: SearchViewModel, activity: AppCompatActivity,networkMonitor: NetworkMonitor){
     val navController = rememberNavController()
-    Surface(color = Color.White) {
-        SetupNavGraph(navController = navController)
+    Surface(color=Color.White){
+        SetupNavGraph(navController=navController,searchVM,activity,networkMonitor) //función propia //crea el grafo recordando el navcontroller donde nos encontramos
     }
 }
 
 @Composable
-fun SetupNavGraph(navController: NavHostController){
-    NavHost(navController = navController, startDestination = "menu"){
-        composable("menu") { MenuScreen(navController)}
-            composable("home") { HomeScreen(navController) }
-            composable("components") { ComponentsScreen(navController) }
+fun SetupNavGraph(navController: NavHostController, searchVM: SearchViewModel, activity: AppCompatActivity, networkMonitor: NetworkMonitor){
+
+    val context = LocalContext.current
+    NavHost(navController = navController, startDestination = "menu"){ //índice de pantallas //Usa el nav controller de ahorita y empieza desde el índice definido
+        composable("menu"){ MenuScreen(navController) } //Rutas
+        composable("home"){ HomeScreen(navController) }
+        composable("components"){ ComponentsScreen(navController) }
+        composable("login"){ LoginScreen(navController = navController)}
+
+        composable("Camera"){ CameraScreen(context = context,navController)}
+
+        composable("internet"){networkMonitor.NetworkMonitorScreen(navController)}
+
+        // Rutas de contactos
+
+        composable("contacts"){ ContactScreen(navController = navController) }
+
+        //Biometricos
+        composable("biometrics"){ BiometricsScreen(navController = navController, activity = activity)}
+
+        // Ruta para `MapsSearchView` que recibe latitud, longitud y dirección como argumentos
+        composable("homeMaps"){ HomeView(navController = navController, searchVM = searchVM)}
+        composable("MapsSearchView/{lat}/{long}/{address}", arguments = listOf(
+            navArgument("lat") { type = NavType.FloatType },
+            navArgument("long") { type = NavType.FloatType },
+            navArgument("address") { type = NavType.StringType }
+        )) {
+            // Obtención de los argumentos con valores predeterminados en caso de que falten
+            val lat = it.arguments?.getFloat("lat") ?: 0.0
+            val long = it.arguments?.getFloat("long") ?: 0.0
+            val address = it.arguments?.getString("address") ?: ""
+            MapsSearchView(lat.toDouble(), long.toDouble(), address )
+        }
+
     }
+
 }

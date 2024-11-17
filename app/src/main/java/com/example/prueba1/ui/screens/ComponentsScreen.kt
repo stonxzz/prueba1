@@ -111,6 +111,7 @@ import com.example.ejemplo1.ui.components.PostCardCompact
 import com.example.prueba1.R
 import com.example.prueba1.data.model.MenuModel
 import com.example.prueba1.data.model.PostModel
+import com.example.prueba1.ui.contacts.ContactScreen
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
@@ -133,7 +134,8 @@ fun ComponentsScreen(navController: NavController){
             MenuModel(1,"Alert Dialogs","AlertDialogs", Icons.Filled.Lock),
             MenuModel(1,"Bars","Bars", Icons.Filled.Menu),
             MenuModel(1,"Adaptive","Adaptive", Icons.Filled.Menu),
-
+            MenuModel(1,"Login","Login", Icons.Filled.Menu),
+            MenuModel(1,"API Contacts","API Contacts", Icons.Filled.Menu),
         )
         var component by rememberSaveable { mutableStateOf("") }//Es para hacer reactiva la variable commo en vue
         val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -360,6 +362,12 @@ fun ComponentsScreen(navController: NavController){
                     }
                     "Adaptive" -> {
                         Adaptive()
+                    }
+                    "Login" -> {
+                        LoginScreen(navController)
+                    }
+                    "API Contacts" -> {
+                        ContactScreen(navController)
                     }
                 }
             }
