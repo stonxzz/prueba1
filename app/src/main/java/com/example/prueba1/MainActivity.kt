@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,6 +55,7 @@ import com.example.prueba1.ui.theme.Prueba1Theme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.prueba1.ui.biometrics.BiometricsScreen
 import com.example.prueba1.ui.contacts.ContactScreen
 import com.example.prueba1.ui.screens.ComponentsScreen
 import com.example.prueba1.ui.screens.HomeScreen
@@ -62,12 +64,12 @@ import com.example.prueba1.ui.screens.MenuScreen
 
 //import androidx.navigation.compose.NavHostController
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ComposeMultiScreenApp()
+            ComposeMultiScreenApp(this)
             /*
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -344,19 +346,21 @@ fun BoxExample2(){
 */
 
 @Composable
-fun ComposeMultiScreenApp(){
+fun ComposeMultiScreenApp(activity: AppCompatActivity){
     val navController = rememberNavController()
     Surface(color = Color.White) {
-        SetupNavGraph(navController = navController)
+        SetupNavGraph(navController = navController, activity)
     }
 }
 
 @Composable
-fun SetupNavGraph(navController: NavHostController){
-    NavHost(navController = navController, startDestination = "components"){
+fun SetupNavGraph(navController: NavHostController,activity: AppCompatActivity){
+    NavHost(navController = navController, startDestination = "biometrics"){
         composable("menu") { MenuScreen(navController)}
         composable("home") { HomeScreen(navController) }
         composable("login") { LoginScreen(navController) }
         composable("components") { ComponentsScreen(navController) }
+        //Biometricos
+        composable("biometrics"){ BiometricsScreen(navController = navController, activity = activity)}
     }
 }
