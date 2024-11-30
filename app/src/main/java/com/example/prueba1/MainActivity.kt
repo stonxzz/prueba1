@@ -85,6 +85,7 @@ import androidx.work.BackoffPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.prueba1.ui.screens.ManageServiceScreen
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
@@ -476,7 +477,11 @@ fun SetupNavGraph(navController: NavHostController, searchVM: SearchViewModel, a
             val address = it.arguments?.getString("address") ?: ""
             MapsSearchView(lat.toDouble(), long.toDouble(), address )
         }
-
+        //API SERVICES
+        composable("manage-service/{serviceId}"){backStackEntry ->
+            val serviceId = backStackEntry.arguments?.getString("serviceId")
+            ManageServiceScreen(navController, serviceId = serviceId)
+        }
     }
 
 }
